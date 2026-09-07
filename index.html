@@ -156,9 +156,14 @@
     box-shadow:var(--shadow-md);border:1px solid var(--card-border);
     padding:26px;min-height:500px;overflow:hidden;
   }
-  #journeyMap .mapHead{position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;}
-  #journeyMap .mapHead h2{margin:0;font-size:1.15rem;}
-  #journeyMap .mapHead p{margin:4px 0 0;color:var(--ink-soft);font-size:0.85rem;max-width:320px;}
+  #journeyMap .mapHead{
+    position:relative;z-index:2;display:inline-flex;flex-direction:column;
+    background:rgba(255,255,255,0.88);backdrop-filter:blur(6px);
+    border-radius:22px;padding:14px 18px;box-shadow:var(--shadow-sm);
+    max-width:300px;
+  }
+  #journeyMap .mapHead h2{margin:0;font-size:1.1rem;}
+  #journeyMap .mapHead p{margin:4px 0 0;color:var(--ink-soft);font-size:0.82rem;}
 
   #quillHost{position:absolute;right:1%;top:0;text-align:center;z-index:3;}
   .speechBubble{
@@ -171,7 +176,10 @@
   }
 
   #islands{position:relative;height:340px;margin-top:10px;}
-  .path{position:absolute;stroke:rgba(160,150,200,0.45);stroke-width:2.5;stroke-dasharray:6 8;fill:none;}
+  .pathSvg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;z-index:0;}
+  .path{stroke:rgba(160,150,200,0.5);stroke-width:1;stroke-dasharray:2 2.4;fill:none;}
+  .pathStar{position:absolute;font-size:1rem;transform:translate(-50%,-50%);z-index:0;}
+  .pathStar span{display:inline-block;animation:twinkle 2.4s ease-in-out infinite;}
   .island{
     position:absolute;width:150px;text-align:center;cursor:pointer;
     transition:transform .18s ease;
@@ -930,10 +938,36 @@ function refreshHeader(){
     `<div class="achBadge"><div class="circ" style="opacity:.4">🔒</div><span>Keep going!</span></div>`;
 }
 
+const PATH_ORDER = ['maths','english','history','art','science'];
+function islandCenter(s){
+  return { x: parseFloat(s.pos.left) + 7, y: parseFloat(s.pos.top) + 13 };
+}
+function renderJourneyPath(){
+  const points = PATH_ORDER.map(id => islandCenter(SUBJECTS.find(s => s.id === id)));
+  let d = `M ${points[0].x} ${points[0].y}`;
+  for(let i = 1; i < points.length; i++){
+    const prev = points[i-1], cur = points[i];
+    const mx = (prev.x + cur.x) / 2, my = (prev.y + cur.y) / 2 - 6;
+    d += ` Q ${mx} ${my} ${cur.x} ${cur.y}`;
+  }
+  const starAt = (t) => {
+    const idx = Math.min(points.length - 2, Math.floor(t * (points.length - 1)));
+    const a = points[idx], b = points[idx+1];
+    const f = (t * (points.length - 1)) - idx;
+    return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f - 3 };
+  };
+  const s1 = starAt(0.28), s2 = starAt(0.72);
+  return `<svg class="pathSvg" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <path class="path" d="${d}" vector-effect="non-scaling-stroke"/>
+  </svg>
+  <div class="pathStar" style="left:${s1.x}%;top:${s1.y}%;"><span>⭐</span></div>
+  <div class="pathStar" style="left:${s2.x}%;top:${s2.y}%;"><span>⭐</span></div>`;
+}
 function renderIslands(){
   const wrap = document.getElementById('islands');
   wrap.innerHTML = '';
   const isMobile = window.matchMedia('(max-width:680px)').matches;
+  if(!isMobile) wrap.innerHTML = renderJourneyPath();
   SUBJECTS.forEach((s, i) => {
     const lessonsForSubject = LESSONS.filter(l => l.subject === s.id);
     const doneCount = lessonsForSubject.filter(l => state.completedLessons.includes(l.id)).length;
