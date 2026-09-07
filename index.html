@@ -152,10 +152,16 @@
     position:relative;border-radius:var(--r-card);
     background:
       url('quill-assets/deco-mountains.png') repeat-x bottom center / 340px auto,
-      linear-gradient(160deg,#EAF7FF,#F6EEFF 60%,#FFF1F7);
+      radial-gradient(60% 55% at 15% 8%, rgba(174,225,255,0.55), transparent 65%),
+      radial-gradient(55% 50% at 85% 12%, rgba(217,198,245,0.5), transparent 65%),
+      radial-gradient(70% 60% at 50% 100%, rgba(255,201,224,0.4), transparent 70%),
+      linear-gradient(165deg,#E3F2FF,#EFEAFB 45%,#FDEEF6 80%);
     box-shadow:var(--shadow-md);border:1px solid var(--card-border);
     padding:26px;min-height:500px;overflow:hidden;
   }
+  #mapSky{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+  #mapSky img{position:absolute;}
+  #mapSky .mapTwinkle{animation:twinkle 2.8s ease-in-out infinite;}
   #journeyMap .mapHead{
     position:relative;z-index:2;display:inline-flex;flex-direction:column;
     background:rgba(255,255,255,0.88);backdrop-filter:blur(6px);
@@ -377,6 +383,7 @@
     #topbar{padding:12px 14px;justify-content:space-between;}
     #moreMenuBtn{display:flex;}
     #journeyMap{padding:18px;min-height:auto;background:linear-gradient(160deg,#EAF7FF,#F6EEFF 60%,#FFF1F7);}
+    #mapSky{display:none;}
     #quillHost{display:none;}
     #islands{height:auto;position:static;display:flex;flex-direction:column;gap:12px;}
     .island{position:static;width:100%;}
@@ -453,6 +460,7 @@
             </div>
           </div>
           <div id="journeyMap">
+            <div id="mapSky"></div>
             <div class="mapHead">
               <div>
                 <h2>Your Learning Journey</h2>
@@ -1310,6 +1318,33 @@ function fireConfetti(count){
     el.style.top = Math.random()*100 + '%';
     host.appendChild(el);
   }
+})();
+
+(function mapSky(){
+  const host = document.getElementById('mapSky');
+  if(!host) return;
+  const clouds = [
+    { file:'deco-cloud.png', left:'4%', top:'6%', w:120, op:0.55 },
+    { file:'deco-cloud.png', left:'70%', top:'4%', w:150, op:0.5 },
+    { file:'deco-cloud.png', left:'88%', top:'34%', w:90, op:0.4 },
+    { file:'deco-cloud.png', left:'2%', top:'70%', w:100, op:0.4 },
+  ];
+  const sparkles = [
+    { file:'deco-star-pair.png', left:'22%', top:'2%', w:26 },
+    { file:'deco-sparkle-small.png', left:'46%', top:'8%', w:20 },
+    { file:'deco-star-blue.png', left:'92%', top:'10%', w:22 },
+    { file:'deco-sparkle-tiny.png', left:'8%', top:'34%', w:16 },
+    { file:'deco-star-pair.png', left:'60%', top:'2%', w:20 },
+    { file:'deco-sparkle-small.png', left:'80%', top:'62%', w:18 },
+  ];
+  clouds.forEach(c => {
+    host.insertAdjacentHTML('beforeend',
+      `<img src="quill-assets/${c.file}" alt="" style="left:${c.left};top:${c.top};width:${c.w}px;opacity:${c.op};">`);
+  });
+  sparkles.forEach((s, i) => {
+    host.insertAdjacentHTML('beforeend',
+      `<img class="mapTwinkle" src="quill-assets/${s.file}" alt="" style="left:${s.left};top:${s.top};width:${s.w}px;animation-delay:${i * 0.35}s;">`);
+  });
 })();
 
 /* ================= Settings ================= */
